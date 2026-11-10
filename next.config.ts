@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
+    skipTrailingSlashRedirect: true,
     ...(process.env.BUILD_STANDALONE === "true"
         ? { output: "standalone" as const }
         : {}),

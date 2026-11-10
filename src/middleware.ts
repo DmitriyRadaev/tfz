@@ -15,14 +15,8 @@ import { ROUTES } from "@/shared/constants/routes";
 
 const PREFIX = "/calculate-tfz";
 
-const AUTH_ROUTES = [
-    ROUTES.SIGN_IN,
-    ROUTES.SIGN_UP,
-];
-
-const ADMIN_ROUTES = [
-    ROUTES.ADMIN_HOME,
-];
+const AUTH_ROUTES = [ROUTES.SIGN_IN, ROUTES.SIGN_UP];
+const ADMIN_ROUTES = [ROUTES.ADMIN_HOME];
 
 const SECURITY_HEADERS: Record<string, string> = {
     "X-Frame-Options": "DENY",
@@ -39,10 +33,7 @@ async function readSession(request: NextRequest): Promise<Session> {
 
     if (accessToken) {
         const claims = await verifyAccessToken(accessToken);
-
-        if (claims) {
-            return { role: claims.role };
-        }
+        if (claims) return { role: claims.role };
     }
 
     const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
@@ -58,14 +49,12 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
     for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
         response.headers.set(header, value);
     }
-
     return response;
 }
 
 function clearSessionCookies(response: NextResponse): NextResponse {
     response.cookies.delete(ACCESS_COOKIE);
     response.cookies.delete(REFRESH_COOKIE);
-
     return response;
 }
 
@@ -80,16 +69,21 @@ function externalUrl(path: string, request: NextRequest): URL {
 }
 
 export default async function middleware(request: NextRequest) {
-    // Nginx removes /calculate-tfz before forwarding the request.
-    // Therefore Next.js sees ordinary paths: /, /sign-in, /admin-home.
-    const { pathname } = request.nextUrl;
+    const pathname = request.nextUrl.pathname;
 
-    const isAuthRoute = isRoute(pathname, AUTH_ROUTES);
-    const isAdminRoute = isRoute(pathname, ADMIN_ROUTES);
+    // Убираем внешний префикс, если он присутствует.
+    const appPath = pathname.startsWith(`${PREFIX}/`)
+        ? pathname.slice(PREFIX.length)
+        : pathname === PREFIX
+            ? "/"
+            : pathname;
+
+    const isAuthRoute = isRoute(appPath, AUTH_ROUTES);
+    const isAdminRoute = isRoute(appPath, ADMIN_ROUTES);
 
     const session = await readSession(request);
 
-    // Unauthenticated visitor
+    // Неавторизованный пользователь
     if (!session) {
         if (isAuthRoute) {
             return withSecurityHeaders(NextResponse.next());
@@ -98,9 +92,9 @@ export default async function middleware(request: NextRequest) {
         const signInUrl = externalUrl(ROUTES.SIGN_IN, request);
 
         const redirectPath =
-            pathname === "/"
+            appPath === "/"
                 ? `${PREFIX}/`
-                : `${PREFIX}${pathname}`;
+                : `${PREFIX}${appPath}`;
 
         signInUrl.searchParams.set("redirect", redirectPath);
 
@@ -109,7 +103,7 @@ export default async function middleware(request: NextRequest) {
         );
     }
 
-    // Authenticated user visiting sign-in or sign-up
+    // Авторизованный пользователь на странице входа или регистрации
     if (isAuthRoute) {
         const target =
             session.role === "ADMIN" || session.role === "SUPERADMIN"
@@ -121,7 +115,7 @@ export default async function middleware(request: NextRequest) {
         );
     }
 
-    // Only ADMIN and SUPERADMIN can access admin pages
+    // Доступ к административному разделу
     if (
         isAdminRoute &&
         session.role !== "ADMIN" &&
