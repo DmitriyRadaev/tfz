@@ -1,9 +1,9 @@
-import type { NextConfig } from "next";
 
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
-    skipTrailingSlashRedirect: true,
+
     ...(process.env.BUILD_STANDALONE === "true"
         ? { output: "standalone" as const }
         : {}),
@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
     images: {
         remotePatterns: [],
     },
-
 
     async headers() {
         return [
