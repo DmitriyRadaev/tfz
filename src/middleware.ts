@@ -13,8 +13,6 @@ import {
 
 import { ROUTES } from "@/shared/constants/routes";
 
-const PREFIX = "/calculate-tfz";
-
 const AUTH_ROUTES = [ROUTES.SIGN_IN, ROUTES.SIGN_UP];
 const ADMIN_ROUTES = [ROUTES.ADMIN_HOME];
 
@@ -64,46 +62,32 @@ function isRoute(pathname: string, routes: readonly string[]): boolean {
     );
 }
 
-function externalUrl(path: string, request: NextRequest): URL {
-    return new URL(`${PREFIX}${path}`, request.url);
-}
-
 export default async function middleware(request: NextRequest) {
+    // Next.js получает обычные внутренние пути: /, /sign-in, /admin-home.
     const pathname = request.nextUrl.pathname;
 
-    // Убираем внешний префикс, если он присутствует.
-    const appPath = pathname.startsWith(`${PREFIX}/`)
-        ? pathname.slice(PREFIX.length)
-        : pathname === PREFIX
-            ? "/"
-            : pathname;
-
-    const isAuthRoute = isRoute(appPath, AUTH_ROUTES);
-    const isAdminRoute = isRoute(appPath, ADMIN_ROUTES);
+    const isAuthRoute = isRoute(pathname, AUTH_ROUTES);
+    const isAdminRoute = isRoute(pathname, ADMIN_ROUTES);
 
     const session = await readSession(request);
 
-    // Неавторизованный пользователь
+    // Неавторизованный пользователь.
     if (!session) {
         if (isAuthRoute) {
             return withSecurityHeaders(NextResponse.next());
         }
 
-        const signInUrl = externalUrl(ROUTES.SIGN_IN, request);
+        const signInUrl = new URL(ROUTES.SIGN_IN, request.url);
 
-        const redirectPath =
-            appPath === "/"
-                ? `${PREFIX}/`
-                : `${PREFIX}${appPath}`;
-
-        signInUrl.searchParams.set("redirect", redirectPath);
+        // Передаём внутренний путь без внешнего префикса.
+        signInUrl.searchParams.set("redirect", pathname);
 
         return withSecurityHeaders(
             clearSessionCookies(NextResponse.redirect(signInUrl)),
         );
     }
 
-    // Авторизованный пользователь на странице входа или регистрации
+    // Авторизованный пользователь на странице входа или регистрации.
     if (isAuthRoute) {
         const target =
             session.role === "ADMIN" || session.role === "SUPERADMIN"
@@ -111,18 +95,18 @@ export default async function middleware(request: NextRequest) {
                 : ROUTES.HOME;
 
         return withSecurityHeaders(
-            NextResponse.redirect(externalUrl(target, request)),
+            NextResponse.redirect(new URL(target, request.url)),
         );
     }
 
-    // Доступ к административному разделу
+    // Доступ к административному разделу.
     if (
         isAdminRoute &&
         session.role !== "ADMIN" &&
         session.role !== "SUPERADMIN"
     ) {
         return withSecurityHeaders(
-            NextResponse.redirect(externalUrl(ROUTES.HOME, request)),
+            NextResponse.redirect(new URL(ROUTES.HOME, request.url)),
         );
     }
 
@@ -131,6 +115,6 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|xml|webmanifest|well-known)).*)",
+        "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|xml|webmanifest)).*)",
     ],
 };
