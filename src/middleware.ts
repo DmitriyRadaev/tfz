@@ -6,16 +6,6 @@ import { ROUTES } from "@/shared/constants/routes";
 
 /**
  * Проверка доступа к страницам на границе приложения.
- *
- * В прежней версии middleware считал пользователя вошедшим по самому факту
- * наличия куки `refresh`, а роль читал из обычной куки `user_role` — то есть
- * и то и другое подделывалось вручную из DevTools. Теперь проверяется подпись
- * JWT, а роль берётся из его payload.
- *
- * Запускается в Edge Runtime, поэтому используется только jose (WebCrypto);
- * обращений к БД и Redis здесь нет — это дало бы задержку на каждой навигации.
- * Окончательную проверку (активен ли аккаунт, не понижена ли роль) выполняют
- * guard'ы в route handlers.
  */
 
 const AUTH_ROUTES = [ROUTES.SIGN_IN, ROUTES.SIGN_UP];
@@ -40,10 +30,6 @@ async function readSession(request: NextRequest): Promise<Session> {
         if (claims) return { role: claims.role };
     }
 
-    // Access-токен живёт 15 минут, поэтому истёкший — норма. Если refresh-токен
-    // ещё валиден, пускаем на страницу: axios-интерцептор обновит сессию при
-    // первом же запросе к API. Роль при этом неизвестна, поэтому админские
-    // маршруты такому запросу недоступны.
     const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
     if (refreshToken && (await verifyRefreshToken(refreshToken))) {
         return { role: "UNKNOWN" };
@@ -115,10 +101,8 @@ export const config = {
         /*
          * Пропускаем мимо middleware:
          *  - /api/*  — доступ там проверяют сами route handlers.
-         *              Косая черта обязательна: без неё отрицательный
-         *              просмотр вперёд захватывал бы и /api-docs;
          *  - _next/* — статика и чанки Next.js;
-         *  - файлы с расширениями (картинки, манифесты, robots и т. п.).
+         *  - файлы с расширениями (картинки, манифесты и т. п.).
          */
         "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|xml|webmanifest|well-known)).*)",
     ],
