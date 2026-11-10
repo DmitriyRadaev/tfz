@@ -59,13 +59,14 @@ export default async function middleware(request: NextRequest) {
 
     const session = await readSession(request);
 
-    // --- Неаутентифицированный посетитель ---
+   // --- Неаутентифицированный посетитель ---
     if (!session) {
         if (isAuthRoute) {
             return withSecurityHeaders(NextResponse.next());
         }
 
-        const signInUrl = new URL(ROUTES.SIGN_IN, request.url);
+        // Явно добавляем префикс /calculate-tfz к странице входа
+        const signInUrl = new URL(`/calculate-tfz${ROUTES.SIGN_IN}`, request.url);
         signInUrl.searchParams.set("redirect", pathname);
 
         return withSecurityHeaders(
@@ -75,14 +76,22 @@ export default async function middleware(request: NextRequest) {
 
     // --- Аутентифицированный пользователь ---
 
-    // На страницы входа и регистрации его не пускаем.
     if (isAuthRoute) {
-        const target =
+        const rawTarget =
             session.role === "ADMIN" || session.role === "SUPERADMIN"
                 ? ROUTES.ADMIN_HOME
                 : ROUTES.HOME;
+
+        const target = `/calculate-tfz${rawTarget}` as string;
         return withSecurityHeaders(
             NextResponse.redirect(new URL(target, request.url)),
+        );
+    }
+
+    if (isAdminRoute && session.role !== "ADMIN" && session.role !== "SUPERADMIN") {
+        const homeTarget = `/calculate-tfz${ROUTES.HOME}` as string;
+        return withSecurityHeaders(
+            NextResponse.redirect(new URL(homeTarget, request.url)),
         );
     }
 
