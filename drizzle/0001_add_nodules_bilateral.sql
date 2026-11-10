@@ -1,0 +1,1 @@
+ALTER TABLE "calculation_history" ADD COLUMN "nodules_bilateral" boolean;

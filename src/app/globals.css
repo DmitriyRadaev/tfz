@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+/**
+ * Дизайн-токены приложения.
+ *
+ * Фирменный синий СамГМУ — #006CB4; он снят пипеткой с логотипа в /public
+ * и стоит в шкале на позиции 500. Остальные ступени получены сдвигом только
+ * светлоты при неизменном тоне (204°), поэтому вся шкала читается как один
+ * цвет, а не как набор разных синих.
+ *
+ * Раньше оттенки были разбросаны по компонентам хардкодом — в проекте
+ * встречалось 13 несогласованных синих. Теперь источник один.
+ */
+@theme {
+    --color-brand-50: #eef8ff;
+    --color-brand-100: #d7eefe;
+    --color-brand-200: #b1defc;
+    --color-brand-300: #79c4f6;
+    --color-brand-400: #109cf9;
+    --color-brand-500: #006cb4;
+    --color-brand-600: #005c99;
+    --color-brand-700: #004b7d;
+    --color-brand-800: #023a5e;
+    --color-brand-900: #042a44;
+
+    /* Второй цвет логотипа — чёрный. Используется для заголовков. */
+    --color-ink: #111111;
+
+    /*
+     * Степени тяжести тиреотоксикоза. Вынесены в токены, потому что это
+     * смысловые цвета: они должны совпадать везде, где встречается результат
+     * расчёта — в карточке приёма, в списке и в блоке результатов.
+     */
+    --color-severity-light: #047857;
+    --color-severity-light-bg: #ecfdf5;
+    --color-severity-medium: #b45309;
+    --color-severity-medium-bg: #fffbeb;
+    --color-severity-heavy: #b91c1c;
+    --color-severity-heavy-bg: #fef2f2;
+}
+
+/*
+ * Высота страницы для оверлеев модальных окон (используется в Modal.tsx).
+ * Без этой переменной подложка модалки не растягивается на всю страницу.
+ */
+:root {
+    --page-height: 100%;
+}
+
+html {
+    /* Переходы по якорям и возврат к списку не должны «прыгать». */
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #f6f8fa;
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * Видимый фокус по всему приложению: без него навигация с клавиатуры
+ * теряется, а врачу за рабочей станцией она нужнее мыши.
+ */
+:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

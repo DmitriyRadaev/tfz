@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://dental-implant-smr.ru
+
+# Sitemaps
+Sitemap: https://dental-implant-smr.ru/sitemap.xml

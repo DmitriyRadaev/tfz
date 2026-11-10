@@ -1,0 +1,104 @@
+services:
+  tfz_postgres:
+    image: postgres:17-alpine
+    container_name: tfz_postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-tfz}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tfz}
+      POSTGRES_DB: ${DB_NAME:-tfz}
+    volumes:
+      - tfz_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tfz} -d ${DB_NAME:-tfz}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  tfz_redis_backend:
+    image: redis:7-alpine
+    container_name: tfz_redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  tfz_redis_http:
+    image: hiett/serverless-redis-http:latest
+    container_name: tfz_redis_http
+    environment:
+      SRH_MODE: env
+      SRH_TOKEN: ${REDIS_TOKEN:-local-dev-token}
+      SRH_CONNECTION_STRING: "redis://tfz_redis_backend:6379"
+    expose:
+      - "80"
+    depends_on:
+      tfz_redis_backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Одноразовый контейнер для создания таблиц и начального заполнения (seed)
+  tfz_migrator:
+    container_name: tfz_db_migrator
+    build:
+      context: .
+      dockerfile: _docker/app/Dockerfile
+      target: builder
+    command: sh -c "npm run db:push && npm run db:seed"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-tfz}:${DB_PASSWORD:-tfz}@tfz_postgres:5432/${DB_NAME:-tfz}
+      DB_DRIVER: pg
+      JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET, минимум 32 символа}
+    env_file:
+      - .env
+    depends_on:
+      tfz_postgres:
+        condition: service_healthy
+    restart: "no"
+
+  tfz_app:
+    container_name: tfz_nextjs_app
+    build:
+      context: .
+      dockerfile: _docker/app/Dockerfile
+    expose:
+      - "3005"
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: postgresql://${DB_USER:-tfz}:${DB_PASSWORD:-tfz}@tfz_postgres:5432/${DB_NAME:-tfz}
+      DB_DRIVER: pg
+      JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET, минимум 32 символа}
+      UPSTASH_REDIS_REST_URL: http://tfz_redis_http:80
+      UPSTASH_REDIS_REST_TOKEN: ${REDIS_TOKEN:-local-dev-token}
+    env_file:
+      - .env
+    depends_on:
+      tfz_postgres:
+        condition: service_healthy
+      tfz_migrator:
+        condition: service_completed_successfully
+      tfz_redis_http:
+        condition: service_started
+    restart: unless-stopped
+
+  tfz_nginx:
+    image: nginx:latest
+    container_name: tfz_nginx_server
+    ports:
+      - "8083:80"
+    volumes:
+      - ./_docker/nginx/conf.d/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - tfz_app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  tfz_postgres_data:

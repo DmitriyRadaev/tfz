@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792502930652,
+      "tag": "0000_omniscient_tag",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793949364722,
+      "tag": "0001_add_nodules_bilateral",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793957967870,
+      "tag": "0002_scoring_rulesets",
+      "breakpoints": true
+    }
+  ]
+}
