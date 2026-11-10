@@ -65,9 +65,10 @@ export default async function middleware(request: NextRequest) {
             return withSecurityHeaders(NextResponse.next());
         }
 
-        // Явно добавляем префикс /calculate-tfz к странице входа
         const signInUrl = new URL(`/calculate-tfz${ROUTES.SIGN_IN}`, request.url);
-        signInUrl.searchParams.set("redirect", pathname);
+        // Если зашли в корень префикса, сохраняем полный путь с префиксом
+        const redirectPath = pathname === '/' ? '/calculate-tfz/' : pathname;
+        signInUrl.searchParams.set("redirect", redirectPath);
 
         return withSecurityHeaders(
             clearSessionCookies(NextResponse.redirect(signInUrl)),
