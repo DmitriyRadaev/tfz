@@ -77,19 +77,17 @@ export default async function middleware(request: NextRequest) {
             return withSecurityHeaders(NextResponse.next());
         }
 
-                const signInUrl = new URL(`/calculate-tfz${ROUTES.SIGN_IN}`, request.url);
+        const signInUrl = new URL(ROUTES.SIGN_IN, request.url);
 
-        // Передаём внутренний путь с внешним префиксом.
-        const redirectPath =
-            pathname === "/" ? "/calculate-tfz/" : `/calculate-tfz${pathname}`;
-        signInUrl.searchParams.set("redirect", redirectPath);
+        // Передаём внутренний путь без внешнего префикса.
+        signInUrl.searchParams.set("redirect", pathname);
 
         return withSecurityHeaders(
             clearSessionCookies(NextResponse.redirect(signInUrl)),
         );
     }
 
-        // Авторизованный пользователь на странице входа или регистрации.
+    // Авторизованный пользователь на странице входа или регистрации.
     if (isAuthRoute) {
         const target =
             session.role === "ADMIN" || session.role === "SUPERADMIN"
@@ -97,7 +95,7 @@ export default async function middleware(request: NextRequest) {
                 : ROUTES.HOME;
 
         return withSecurityHeaders(
-            NextResponse.redirect(new URL(`/calculate-tfz${target}`, request.url)),
+            NextResponse.redirect(new URL(target, request.url)),
         );
     }
 
@@ -108,9 +106,7 @@ export default async function middleware(request: NextRequest) {
         session.role !== "SUPERADMIN"
     ) {
         return withSecurityHeaders(
-            NextResponse.redirect(
-                new URL(`/calculate-tfz${ROUTES.HOME}`, request.url),
-            ),
+            NextResponse.redirect(new URL(ROUTES.HOME, request.url)),
         );
     }
 
