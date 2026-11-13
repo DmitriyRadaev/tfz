@@ -1,5 +1,5 @@
 
-/** Маршруты приложения. Используются без внешнего префикса Nginx. */
+/** Внутренние маршруты для Next Link/router, которые сами добавляют basePath. */
 export const ROUTES = {
     HOME: "/",
     SIGN_IN: "/sign-in",

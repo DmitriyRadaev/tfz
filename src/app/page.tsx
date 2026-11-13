@@ -12,6 +12,7 @@ import { PatientCasesList, PatientList } from "@/features/patient";
 import { ProfileButton } from "@/features/profile";
 import type { Patient, PatientCase } from "@/shared/api/patientApi";
 import { ROUTES } from "@/shared/constants/routes";
+import { appPath } from "@/shared/lib/app-path";
 import { Button } from "@/shared/ui/Button";
 import { ConfirmDialog } from "@/shared/ui/ConfirmDialog";
 import { PatientCard } from "@/shared/ui/PatientCard";
@@ -64,7 +65,7 @@ export default function WorkstationPage() {
                     </button>
 
                     <Image
-                        src="/samgmu-logo.jpg"
+                        src={appPath("/samgmu-logo.jpg")}
                         alt="Самарский государственный медицинский университет"
                         width={180}
                         height={79}

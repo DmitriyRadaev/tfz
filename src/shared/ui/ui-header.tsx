@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Image from "next/image";
+import { appPath } from "@/shared/lib/app-path";
 
 type UiHeaderVariant = "logo" | "withoutLogo";
 
@@ -18,7 +19,7 @@ export function UiHeader({className, variant}: UiHeaderProps) {
         >
             {variant === "logo" && (
                 <Image
-                    src="/logo.png"
+                    src={appPath("/logo.png")}
                     width={270}
                     height={97}
                     alt="Логотип приложения"

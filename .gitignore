@@ -6,6 +6,7 @@
 # сборка
 /.next/
 /out/
+/public/sitemap*.xml
 /build
 *.tsbuildinfo
 next-env.d.ts

@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
     ACCESS_COOKIE,
     REFRESH_COOKIE,
+    expiredCookieOptions,
 } from "@/server/auth/cookies";
 
 import {
@@ -51,8 +52,8 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
 }
 
 function clearSessionCookies(response: NextResponse): NextResponse {
-    response.cookies.delete(ACCESS_COOKIE);
-    response.cookies.delete(REFRESH_COOKIE);
+    response.cookies.set(ACCESS_COOKIE, "", expiredCookieOptions());
+    response.cookies.set(REFRESH_COOKIE, "", expiredCookieOptions());
     return response;
 }
 
@@ -62,8 +63,23 @@ function isRoute(pathname: string, routes: readonly string[]): boolean {
     );
 }
 
+function redirectUrl(path: string, request: NextRequest) {
+    // clone сохраняет basePath Next.js, в отличие от new URL('/...', request.url).
+    const url = request.nextUrl.clone();
+    url.pathname = path;
+    url.search = "";
+    const target = new URL(url.toString());
+    // NextURL наследует завершающий слеш исходного запроса. Фиксируем целевой путь.
+    target.pathname = `${url.basePath}${path}`;
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const protocol = request.headers.get("x-forwarded-proto");
+    if (host) target.host = host;
+    if (protocol === "http" || protocol === "https") target.protocol = `${protocol}:`;
+    return target;
+}
+
 export default async function middleware(request: NextRequest) {
-    // Next.js получает обычные внутренние пути: /, /sign-in, /admin-home.
+    // nextUrl.pathname уже не содержит basePath.
     const pathname = request.nextUrl.pathname;
 
     const isAuthRoute = isRoute(pathname, AUTH_ROUTES);
@@ -77,10 +93,10 @@ export default async function middleware(request: NextRequest) {
             return withSecurityHeaders(NextResponse.next());
         }
 
-        const signInUrl = new URL(ROUTES.SIGN_IN, request.url);
+        const signInUrl = redirectUrl(ROUTES.SIGN_IN, request);
 
         // Передаём внутренний путь без внешнего префикса.
-        signInUrl.searchParams.set("redirect", pathname);
+        signInUrl.searchParams.set("redirect", `${pathname}${request.nextUrl.search}`);
 
         return withSecurityHeaders(
             clearSessionCookies(NextResponse.redirect(signInUrl)),
@@ -95,7 +111,7 @@ export default async function middleware(request: NextRequest) {
                 : ROUTES.HOME;
 
         return withSecurityHeaders(
-            NextResponse.redirect(new URL(target, request.url)),
+            NextResponse.redirect(redirectUrl(target, request)),
         );
     }
 
@@ -106,7 +122,7 @@ export default async function middleware(request: NextRequest) {
         session.role !== "SUPERADMIN"
     ) {
         return withSecurityHeaders(
-            NextResponse.redirect(new URL(ROUTES.HOME, request.url)),
+            NextResponse.redirect(redirectUrl(ROUTES.HOME, request)),
         );
     }
 
@@ -115,6 +131,8 @@ export default async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|xml|webmanifest)).*)",
+        // Next сопоставляет корень basePath отдельно, в том числе без '/'.
+        "/",
+        "/((?!api(?:/|$)|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|pdf|txt|xml|webmanifest)$).*)",
     ],
 };

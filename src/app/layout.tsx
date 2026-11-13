@@ -3,10 +3,12 @@ import './globals.css';
 import {AppProvider} from '@/shared/lib/app-provider';
 import {Metadata} from "next";
 import {MyToastRegion} from "@/shared/ui/Toast";
+import { appPath } from "@/shared/lib/app-path";
 
 const montserrat = Montserrat({subsets: ['latin']});
 
 export const metadata: Metadata = {
+    metadataBase: new URL(process.env.APP_ORIGIN ?? "http://172.26.4.9"),
     title: {
         default: "Калькулятор ТФЗ",
         template: "%s",
@@ -22,7 +24,7 @@ export const metadata: Metadata = {
         capable: true,
     },
     icons: {
-        apple: "/apple-icon.png",
+        apple: appPath("/apple-icon.png"),
     },
 
     // OpenGraph preview
@@ -30,10 +32,10 @@ export const metadata: Metadata = {
         title: "Калькулятор ТФЗ",
         description: "Система расчета интегрального показателя токсических форм зоба",
         type: "website",
-        url: "https://dental-implant-smr.ru/",
+        url: appPath("/"),
         images: [
             {
-                url: "https://dental-implant-smr.ru/og-atlas.png",
+                url: appPath("/og-atlas.png"),
                 width: 1200,
                 height: 630,
                 alt: "Калькулятор ТФЗ",
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
     },
 
 
-    manifest: "/manifest.webmanifest",
+    manifest: appPath("/manifest.webmanifest"),
 };
 
 export default function RootLayout({

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { appPath } from "@/shared/lib/app-path";
 
 import {
     accountActivationSchema,
@@ -176,7 +177,7 @@ export function buildOpenApiDocument() {
                 "выставляет `POST /auth/login`. Отдельный CSRF-токен не нужен: " +
                 "небезопасные методы проверяют заголовок `Origin`.",
         },
-        servers: [{ url: "/api" }],
+        servers: [{ url: appPath("/api") }],
         tags: [
             { name: "Auth", description: "Вход, выход, обновление сессии, регистрация" },
             { name: "Patients", description: "Картотека пациентов" },

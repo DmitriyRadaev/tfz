@@ -5,8 +5,10 @@
  * было импортировать и из middleware (Edge Runtime), и из route handlers.
  */
 
-export const ACCESS_COOKIE = "access";
-export const REFRESH_COOKIE = "refresh";
+import { APP_BASE_PATH } from "@/shared/lib/app-path";
+
+export const ACCESS_COOKIE = "tfz_access";
+export const REFRESH_COOKIE = "tfz_refresh";
 
 export interface CookieOptions {
     httpOnly: true;
@@ -24,9 +26,11 @@ export interface CookieOptions {
 export function cookieOptions(maxAgeSeconds?: number): CookieOptions {
     return {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.COOKIE_SECURE === "false"
+            ? false
+            : process.env.COOKIE_SECURE === "true" || process.env.NODE_ENV === "production",
         sameSite: "lax",
-        path: "/",
+        path: APP_BASE_PATH,
         ...(maxAgeSeconds !== undefined ? { maxAge: maxAgeSeconds } : {}),
     };
 }

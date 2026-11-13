@@ -1,23 +1,25 @@
 {
   "name": "Калькулятор интегрального показателя ТФЗ",
   "short_name": "Калькулятор ТФЗ",
-  "start_url": "/",
+  "id": "/calculate-tfz/",
+  "scope": "/calculate-tfz/",
+  "start_url": "/calculate-tfz/",
   "display": "standalone",
   "icons": [
     {
-      "src": "/apple-icon.png",
+      "src": "/calculate-tfz/apple-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     },
     {
-      "src": "/icon-192.png",
+      "src": "/calculate-tfz/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/calculate-tfz/icon-512.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }

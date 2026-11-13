@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://dental-implant-smr.ru
+Host: http://172.26.4.9/calculate-tfz
 
 # Sitemaps
-Sitemap: https://dental-implant-smr.ru/sitemap.xml
+Sitemap: http://172.26.4.9/calculate-tfz/sitemap.xml

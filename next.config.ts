@@ -1,8 +1,11 @@
 
 import type { NextConfig } from "next";
+import { APP_BASE_PATH } from "./src/shared/lib/app-path";
 
 const nextConfig: NextConfig = {
-    basePath: "/calculate-tfz",
+    basePath: APP_BASE_PATH,
+    // Канонический /calculate-tfz/ задаёт Nginx; Next не должен убирать этот слеш.
+    skipTrailingSlashRedirect: true,
     reactStrictMode: true,
 
     ...(process.env.BUILD_STANDALONE === "true"

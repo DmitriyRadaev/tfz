@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { appPath } from "@/shared/lib/app-path";
 
 export const metadata: Metadata = {
     title: "TFZ API — документация",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function ApiDocsPage() {
     return (
         <>
-            <div id="api-reference" data-url="/api/openapi" />
+            <div id="api-reference" data-url={appPath("/api/openapi")} />
             <script
                 src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.25.123/dist/browser/standalone.min.js"
                 async

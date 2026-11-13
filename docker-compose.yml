@@ -71,6 +71,8 @@ services:
       NODE_ENV: production
       PORT: 3005
       HOSTNAME: "0.0.0.0"
+      # Публикация по HTTP во внутренней сети; для HTTPS задайте COOKIE_SECURE=true.
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       DATABASE_URL: postgresql://${DB_USER:-tfz}:${DB_PASSWORD:-tfz}@tfz_postgres:5432/${DB_NAME:-tfz}
       DB_DRIVER: pg
       JWT_SECRET: ${JWT_SECRET:?задайте JWT_SECRET, минимум 32 символа}

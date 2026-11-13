@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 
 import { authApi, type SignInBodyDto } from "@/shared/api/authApi";
 import { extractErrorMessage } from "@/shared/api/api-instance";
-import { ROUTES } from "@/shared/constants/routes";
+import { postLoginPath } from "./post-login-path";
 
 /**
  * Форма авторизации.
@@ -31,14 +31,7 @@ export function useSignInForm() {
             // Принимаем только относительные пути: внешний адрес в параметре
             // превратил бы страницу входа в инструмент для открытого редиректа.
             const requested = searchParams.get("redirect");
-            const fallback = isAdmin ? ROUTES.ADMIN_HOME : ROUTES.HOME;
-
-            const target =
-                requested &&
-                requested.startsWith("/") &&
-                !requested.startsWith("//")
-                    ? requested
-                    : fallback;
+            const target = postLoginPath(requested, isAdmin);
 
             // `replace`, чтобы кнопка «назад» не возвращала на форму входа.
             router.replace(target);

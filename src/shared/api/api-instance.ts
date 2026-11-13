@@ -1,13 +1,15 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 
 import { getQueryClient } from "@/shared/api/query-client";
+import { appPath } from "@/shared/lib/app-path";
+import { ROUTES } from "@/shared/constants/routes";
 
 /**
  * Единый HTTP-клиент приложения.
  *
  * После объединения фронтенда и бэкенда в одно приложение API живёт на том же
  * origin, поэтому:
- *  - базовый адрес — относительный `/api`, никаких CORS и NEXT_PUBLIC_*;
+ *  - базовый адрес — `/calculate-tfz/api` на том же хосте;
  *  - CSRF-токен не нужен: куки помечены SameSite=Lax, а сервер дополнительно
  *    сверяет заголовок Origin (см. `server/http/origin.ts`).
  */
@@ -21,7 +23,7 @@ const AUTH_ENDPOINTS = [
 ];
 
 export const apiInstance = axios.create({
-    baseURL: "/api",
+    baseURL: appPath("/api"),
     headers: { "Content-Type": "application/json" },
     withCredentials: true,
 });
@@ -93,7 +95,7 @@ async function handleAuthFailure(): Promise<never> {
     }
 
     if (typeof window !== "undefined") {
-        window.location.replace("/sign-in");
+        window.location.replace(appPath(ROUTES.SIGN_IN));
     }
 
     throw new Error("AUTH_EXPIRED");
